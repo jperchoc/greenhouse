@@ -16,15 +16,15 @@ export default class LightSensor {
         return this.value;
     }
 
-    updateDummyValue(leds) {
+    updateDummyValue(leds, isDuringSunTime) {
         this.dummy.inc = getRandom(0, 10);
         const now = new Date();
-        this.dummy.sens = (now.getHours() > 7 && now.getHours < 19) ? 1 : -1;
+        this.dummy.sens = isDuringSunTime ? 1 : -1;
         this.dummy.sens = (getRandomInt(0, 100) > 10) ? this.dummy.sens : -this.dummy.sens;
-        if (leds.isOn && this.previousLedsState !== leds.isOn) {
+        if (leds.isOn && this.previousLedsState === true) {
             this.value += 1000;
         }
-        if (!leds.isOn && this.previousLedsState !== leds.isOn) {
+        if (!leds.isOn && this.previousLedsState === false) {
             this.value -= 1000;
         }
         this.previousLedsState = leds.isOn;

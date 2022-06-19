@@ -3,6 +3,8 @@ export const config = {
     host: 'youInfluxDBHostHere',
     port: '8086',
     db: 'greenhouse',
+    lat: '0.00',
+    long: '0.00',
 }
 
 export default {

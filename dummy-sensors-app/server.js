@@ -5,6 +5,9 @@ import { influxWrite, initInflux } from "./helpers/api.js";
 import BME280 from "./sensors/bme280.js";
 import HumiditySensor from "./sensors/humidity.js";
 import LightSensor from "./sensors/lightSensor.js";
+import fetch from 'node-fetch';
+import config from "./config.js";
+import { isTimeAfter, isTimeBefore } from "./helpers/date.js";
 
 const INTERVAL = 1000;
 const influx = initInflux();
@@ -28,9 +31,26 @@ leds.off();
 pump1.off();
 pump2.off();
 
+let sunrise = new Date('2022-06-19T05:56:35+00:00');
+let sunset = new Date('2022-06-19T18:06:09+00:00');
+
+const getSunset = async () => {
+    const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${config.lat}&lng=${config.lat}&date=today&formatted=0`);
+    const json = await response.json();
+    sunrise = new Date(json.results.sunrise);
+    sunset = new Date(json.results.sunset);
+}
+
+await getSunset();
+
+setInterval(async () => {
+    await getSunset();
+}, 1000 * 60 * 60 * 24);
+
 setInterval(() => {
     //compute dummy sensors data
-    lightSensor.updateDummyValue(leds);
+    const now = new Date();
+    lightSensor.updateDummyValue(leds, isTimeAfter(now, sunset) && isTimeBefore(now, sunrise));
     humiditySensors[0].updateDummyValue(pump1);
     humiditySensors[1].updateDummyValue(pump1);
     humiditySensors[2].updateDummyValue(pump2);
@@ -58,9 +78,7 @@ setInterval(() => {
         greenhouseWindow.close();
     }
     //LEDS
-
-    const now = new Date();
-    if (lightValue < leds.onThreshold && !leds.isOn && !(now.getHours() > 7 && now.getHours < 19)) {
+    if (lightValue < leds.onThreshold && !leds.isOn && (isTimeAfter(now, sunset) && isTimeBefore(now, sunrise))) {
         leds.on();
     }
     if (lightValue > leds.offThreshold && leds.isOn) {
