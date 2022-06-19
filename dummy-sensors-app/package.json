@@ -1,0 +1,16 @@
+{
+    "name": "dummy_sensor_push",
+    "version": "1.0.0",
+    "description": "Push dummy sensors datas to influxDB",
+    "author": "Jonathan Perchoc",
+    "main": "server.js",
+    "type": "module",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.16.1",
+        "influx": "^5.9.3",
+        "onoff": "^6.0.3"
+    }
+}
