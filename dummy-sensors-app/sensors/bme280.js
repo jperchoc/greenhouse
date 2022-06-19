@@ -47,17 +47,18 @@ export default class BME280 {
         this.temperature = Math.max(this.dummyTemperature.min, this.temperature);
     }
     updateDummyHumidityValue(ghWindow) {
-        this.dummyTemperature.inc = getRandom(0, 0.25);
-        this.dummyTemperature.sens = (getRandomInt(0, 100) > 50) ? this.dummyTemperature.sens : -this.dummyTemperature.sens;
-        this.temperature = this.temperature + this.dummyTemperature.sens * this.dummyTemperature.inc;
-        this.temperature = Math.min(this.dummyTemperature.max, this.temperature);
-        this.temperature = Math.max(this.dummyTemperature.min, this.temperature);
+        this.dummyHumidity.inc = getRandom(0, 0.25);
+        this.dummyHumidity.sens = ghWindow.isOpen ? -1 : 0.1;
+        this.dummyHumidity.sens = (getRandomInt(0, 100) > 10) ? this.dummyHumidity.sens : -this.dummyHumidity.sens;
+        this.humidity = this.humidity + this.dummyHumidity.sens * this.dummyHumidity.inc;
+        this.humidity = Math.min(this.dummyHumidity.max, this.humidity);
+        this.humidity = Math.max(this.dummyHumidity.min, this.humidity);
     }
     updateDummyPressureValue() {
-        this.dummyTemperature.inc = getRandom(0, 0.25);
-        this.dummyTemperature.sens = (getRandomInt(0, 100) > 50) ? this.dummyTemperature.sens : -this.dummyTemperature.sens;
-        this.temperature = this.temperature + this.dummyTemperature.sens * this.dummyTemperature.inc;
-        this.temperature = Math.min(this.dummyTemperature.max, this.temperature);
-        this.temperature = Math.max(this.dummyTemperature.min, this.temperature);
+        this.dummyPressure.inc = getRandom(0, 0.25);
+        this.dummyPressure.sens = (getRandomInt(0, 100) > 50) ? this.dummyPressure.sens : -this.dummyPressure.sens;
+        this.pressure = this.pressure + this.dummyPressure.sens * this.dummyPressure.inc;
+        this.pressure = Math.min(this.dummyPressure.max, this.pressure);
+        this.pressure = Math.max(this.dummyPressure.min, this.pressure);
     }
 }
