@@ -58,7 +58,9 @@ setInterval(() => {
         greenhouseWindow.close();
     }
     //LEDS
-    if (lightValue < leds.onThreshold && !leds.isOn) {
+
+    const now = new Date();
+    if (lightValue < leds.onThreshold && !leds.isOn && !(now.getHours() > 7 && now.getHours < 19)) {
         leds.on();
     }
     if (lightValue > leds.offThreshold && leds.isOn) {

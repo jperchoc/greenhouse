@@ -20,7 +20,7 @@ export default class LightSensor {
         this.dummy.inc = getRandom(0, 10);
         const now = new Date();
         this.dummy.sens = (now.getHours() > 7 && now.getHours < 19) ? 1 : -1;
-        this.dummy.sens = (getRandomInt(0, 100) < 10) ? this.dummy.sens : -this.dummy.sens;
+        this.dummy.sens = (getRandomInt(0, 100) > 10) ? this.dummy.sens : -this.dummy.sens;
         if (leds.isOn && this.previousLedsState !== leds.isOn) {
             this.value += 1000;
         }
