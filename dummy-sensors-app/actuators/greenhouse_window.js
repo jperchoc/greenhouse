@@ -4,7 +4,7 @@ export default class GreenhhouseWindow {
         this.name = name;
         this.openThreshold = openThreshold;
         this.closeThreshold = closeThreshold;
-        this.isOpen = true;
+        this.isOpen = false;
     }
     open() {
         if (!this.isOpen) {

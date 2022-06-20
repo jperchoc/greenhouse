@@ -26,11 +26,6 @@ const leds = new LEDs(0, 'leds', 1000, 4000);
 const pump1 = new Pump(0, 'pump_1', 30, 60);
 const pump2 = new Pump(0, 'pump_2', 30, 60);
 
-greenhouseWindow.close();
-leds.off();
-pump1.off();
-pump2.off();
-
 let sunrise = new Date('2022-06-19T05:56:35+00:00');
 let sunset = new Date('2022-06-19T18:06:09+00:00');
 
@@ -50,7 +45,8 @@ setInterval(async () => {
 setInterval(() => {
     //compute dummy sensors data
     const now = new Date();
-    lightSensor.updateDummyValue(leds, isTimeAfter(now, sunset) && isTimeBefore(now, sunrise));
+    const isDayTime = isTimeAfter(now, sunrise) && isTimeBefore(now, sunset);
+    lightSensor.updateDummyValue(leds, isDayTime);
     humiditySensors[0].updateDummyValue(pump1);
     humiditySensors[1].updateDummyValue(pump1);
     humiditySensors[2].updateDummyValue(pump2);
@@ -78,7 +74,7 @@ setInterval(() => {
         greenhouseWindow.close();
     }
     //LEDS
-    if (lightValue < leds.onThreshold && !leds.isOn && (isTimeAfter(now, sunset) && isTimeBefore(now, sunrise))) {
+    if (lightValue < leds.onThreshold && !leds.isOn && isDayTime) {
         leds.on();
     }
     if (lightValue > leds.offThreshold && leds.isOn) {

@@ -4,7 +4,7 @@ export default class LEDs {
         this.name = name;
         this.onThreshold = onThreshold;
         this.offThreshold = offThreshold;
-        this.isOn = true;
+        this.isOn = false;
     }
     on() {
         if (!this.isOn) {

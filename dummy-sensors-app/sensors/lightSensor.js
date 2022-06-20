@@ -10,7 +10,7 @@ export default class LightSensor {
             sens: 1,
             inc: Math.random()
         }
-        this.value = getRandom(0, 100);
+        this.value = getRandom(50, 10000);
     }
     getValue() {
         return this.value;
