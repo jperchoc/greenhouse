@@ -29,6 +29,14 @@ const pump2 = new Pump(0, 'pump_2', 30, 60);
 let sunrise = new Date('2022-06-19T05:56:35+00:00');
 let sunset = new Date('2022-06-19T18:06:09+00:00');
 
+const formatData = (datas) => {
+    let formatted = '======= DATA ========';
+    datas.forEach((data, i) => {
+        formatted += `\n${data.measurement} (${data.tags.name}: ${data.fields.value})`;
+    })
+    return formatted;
+}
+
 const getSunset = async () => {
     const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${config.lat}&lng=${config.lat}&date=today&formatted=0`);
     const json = await response.json();
@@ -97,68 +105,20 @@ setInterval(() => {
 
     //Write to influxDB
     const datas = [
-        {
-            measurement: 'light',
-            tags: { name: lightSensor.name },
-            fields: { value: lightValue }
-        },
-        {
-            measurement: 'soil_humidity',
-            tags: { name: humiditySensors[0].name },
-            fields: { value: humidity_1_value }
-        },
-        {
-            measurement: 'soil_humidity',
-            tags: { name: humiditySensors[1].name },
-            fields: { value: humidity_2_value }
-        },
-        {
-            measurement: 'soil_humidity',
-            tags: { name: humiditySensors[2].name },
-            fields: { value: humidity_3_value }
-        },
-        {
-            measurement: 'soil_humidity',
-            tags: { name: humiditySensors[3].name },
-            fields: { value: humidity_4_value }
-        },
-        {
-            measurement: 'air_temperature',
-            tags: { name: bme280.name },
-            fields: { value: air_temperature }
-        },
-        {
-            measurement: 'air_humidity',
-            tags: { name: bme280.name },
-            fields: { value: air_humidity }
-        },
-        {
-            measurement: 'air_pressure',
-            tags: { name: bme280.name },
-            fields: { value: air_pressure }
-        },
-        {
-            measurement: 'pump',
-            tags: { name: pump1.name },
-            fields: { value: pump1.isOn ? 1 : 0 }
-        },
-        {
-            measurement: 'pump',
-            tags: { name: pump2.name },
-            fields: { value: pump2.isOn ? 1 : 0 }
-        },
-        {
-            measurement: 'led',
-            tags: { name: leds.name },
-            fields: { value: leds.isOn ? 1 : 0 }
-        },
-        {
-            measurement: 'window',
-            tags: { name: greenhouseWindow.name },
-            fields: { value: greenhouseWindow.isOpen ? 1 : 0 }
-        }
+        { measurement: 'light', tags: { name: lightSensor.name }, fields: { value: lightValue }},
+        { measurement: 'soil_humidity', tags: { name: humiditySensors[0].name }, fields: { value: humidity_1_value }},
+        { measurement: 'soil_humidity', tags: { name: humiditySensors[1].name }, fields: { value: humidity_2_value }},
+        { measurement: 'soil_humidity', tags: { name: humiditySensors[2].name }, fields: { value: humidity_3_value }},
+        { measurement: 'soil_humidity', tags: { name: humiditySensors[3].name }, fields: { value: humidity_4_value }},
+        { measurement: 'air_temperature', tags: { name: bme280.name }, fields: { value: air_temperature }},
+        { measurement: 'air_humidity', tags: { name: bme280.name }, fields: { value: air_humidity }},
+        { measurement: 'air_pressure', tags: { name: bme280.name }, fields: { value: air_pressure }},
+        { measurement: 'pump', tags: { name: pump1.name }, fields: { value: pump1.isOn ? 1 : 0 }},
+        { measurement: 'pump', tags: { name: pump2.name }, fields: { value: pump2.isOn ? 1 : 0 }},
+        { measurement: 'led', tags: { name: leds.name }, fields: { value: leds.isOn ? 1 : 0 }},
+        { measurement: 'window', tags: { name: greenhouseWindow.name }, fields: { value: greenhouseWindow.isOpen ? 1 : 0 }}
     ];
-    console.log(datas);
+    console.log(formatData(datas));
     //Write datas
     influxWrite(influx, datas);
 
