@@ -1,8 +1,8 @@
 import { getRandom, getRandomInt } from "../helpers/helper.js";
+import tsl2591 from 'tsl2591';
 
 export default class LightSensor {
-    constructor(gpio, name) {
-        this.gpio = gpio;
+    constructor(name) {
         this.name = name;
         this.min = 50;
         this.max = 10000;
@@ -11,7 +11,55 @@ export default class LightSensor {
             inc: Math.random()
         }
         this.value = getRandom(50, 10000);
+
+        this.isSensorReady = false;
     }
+
+    _initSensor() {
+        return new Promise((res, rej) => {
+            this.sensor = new tsl2591({device: '/dev/i2c-1'});
+            this.sensor.init({AGAIN: 0, ATIME: 1}, err => {
+                if(err) {
+                    rej(err);
+                } else {
+                    this.isSensorReady = true;
+                    res();
+                }
+            });
+        });
+    }
+    _readLuminosity() {
+        return new Promise((res, rej) => {
+            try {
+                this.sensor.readLuminosity((err, data) => {
+                    if (err) {
+                        rej(err);
+                    } else {
+                        this.value = data.vis_ir;
+                        res();
+                    }
+                });
+            } catch(e) {
+                rej(e);
+            }
+        });
+    }
+
+    async getSensorData(params) {
+        if (params.isDummy) {
+            this.updateDummyValue(params.leds, params.isDuringSunTime);
+        } else {
+            try {
+                if (!this.isSensorReady) {
+                    await this._initSensor();
+                }
+                return await this._readLuminosity();
+            } catch(e) {
+                console.log(e);
+            }
+        }
+    }
+
     getValue() {
         return this.value;
     }

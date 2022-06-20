@@ -50,18 +50,17 @@ setInterval(async () => {
     await getSunset();
 }, 1000 * 60 * 60 * 24);
 
-setInterval(() => {
+setInterval(async () => {
     //compute dummy sensors data
     const now = new Date();
     const isDayTime = isTimeAfter(now, sunrise) && isTimeBefore(now, sunset);
-    lightSensor.updateDummyValue(leds, isDayTime);
-    humiditySensors[0].updateDummyValue(pump1);
-    humiditySensors[1].updateDummyValue(pump1);
-    humiditySensors[2].updateDummyValue(pump2);
-    humiditySensors[3].updateDummyValue(pump2);
-    bme280.updateDummyTemperatureValue();
-    bme280.updateDummyHumidityValue(greenhouseWindow);
-    bme280.updateDummyPressureValue();
+
+    await humiditySensors[0].getSensorData({isDummy: true, pump: pump1});
+    await humiditySensors[1].getSensorData({isDummy: true, pump: pump1});
+    await humiditySensors[2].getSensorData({isDummy: true, pump: pump2});
+    await humiditySensors[3].getSensorData({isDummy: true, pump: pump2});
+    await bme280.getSensorData({isDummy: true, ghWindow: greenhouseWindow});
+    await lightSensor.getSensorData({isDummy: true, leds: leds, isDayTime: isDayTime});
 
     //Get sensors values
     const humidity_1_value = humiditySensors[0].getValue();

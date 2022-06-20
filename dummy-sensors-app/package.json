@@ -9,9 +9,14 @@
         "start": "node server.js"
     },
     "dependencies": {
+        "bme280": "^2.1.1",
         "express": "^4.16.1",
         "influx": "^5.9.3",
         "node-fetch": "^3.2.6",
-        "onoff": "^6.0.3"
+        "onoff": "^6.0.3",
+        "tsl2591": "^0.2.0"
+    },
+    "devDependencies": {
+        "coffee-script": "^1.12.7"
     }
 }

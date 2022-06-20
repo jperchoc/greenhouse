@@ -16,6 +16,14 @@ export default class HumiditySensor {
         return this.value;
     }
 
+    async getSensorData(params) {
+        if (params.isDummy) {
+            this.updateDummyValue(params.pump);
+        } else {
+            //TODO: get sensor data
+        }
+    }
+
     updateDummyValue(pump) {
         this.dummy.inc = getRandom(0, 1);
         this.dummy.sens = pump.isOn ? 1 : -0.1;

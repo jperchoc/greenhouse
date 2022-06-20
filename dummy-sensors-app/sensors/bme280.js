@@ -1,27 +1,24 @@
 import { getRandom, getRandomInt } from "../helpers/helper.js";
+import bme280 from 'bme280';
 
 export default class BME280 {
-    constructor(gpio, name) {
-        this.gpio = gpio;
+    constructor(name) {
         this.name = name;
-
         this.temperature = getRandom(12, 25);
-        this.dummyTemperature = {
-            min: 5,
-            max: 35,
-            sens: 1,
-            inc: getRandom(0, 0.25)
-        };
-
         this.humidity = getRandom(0, 100);
+        this.pressure = getRandom(1000, 1030);
         this.dummyHumidity = {
             min: 0,
             max: 100,
             sens: 1,
             inc: getRandom(0,1)
         };
-
-        this.pressure = getRandom(1000, 1030);
+        this.dummyTemperature = {
+            min: 5,
+            max: 35,
+            sens: 1,
+            inc: getRandom(0, 0.25)
+        };
         this.dummyPressure = {
             min: 990,
             max: 1042,
@@ -29,6 +26,25 @@ export default class BME280 {
             inc: getRandom(0,1)
         };
     }
+
+    async getSensorData(params) {
+        if (params.isDummy) {
+            this.updateDummyHumidityValue(params.ghWindow);
+            this.updateDummyPressureValue();
+            this.updateDummyTemperatureValue();
+        } else {
+            try {
+                const sensor = await bme280.open();
+                const sensorData = await sensor.read();
+                this.temperature = sensorData.temperature;
+                this.pressure = sensorData.pressure;
+                this.humidity = sensorData.humidity;
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+
     getTemperatureValue() {
         return this.temperature;
     }
