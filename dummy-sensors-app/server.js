@@ -18,8 +18,8 @@ const humiditySensors = [
     new HumiditySensor(0, 'sensor_3'),
     new HumiditySensor(0, 'sensor_4')
 ];
-const lightSensor = new LightSensor(0, 'greenhouse_light');
-const bme280 = new BME280(0, 'greenhouse_air');
+const lightSensor = new LightSensor('greenhouse_light');
+const bme280 = new BME280('greenhouse_air');
 
 const greenhouseWindow = new GreenhhouseWindow(0, 'window', 80, 40);
 const leds = new LEDs(0, 'leds', 1000, 4000);
@@ -44,6 +44,7 @@ const getSunset = async () => {
     sunset = new Date(json.results.sunset);
 }
 
+await lightSensor.initSensor();
 await getSunset();
 
 setInterval(async () => {
@@ -60,7 +61,7 @@ setInterval(async () => {
     await humiditySensors[2].getSensorData({isDummy: true, pump: pump2});
     await humiditySensors[3].getSensorData({isDummy: true, pump: pump2});
     await bme280.getSensorData({isDummy: true, ghWindow: greenhouseWindow});
-    await lightSensor.getSensorData({isDummy: true, leds: leds, isDayTime: isDayTime});
+    await lightSensor.getSensorData({isDummy: false, leds: leds, isDayTime: isDayTime});
 
     //Get sensors values
     const humidity_1_value = humiditySensors[0].getValue();
@@ -105,17 +106,17 @@ setInterval(async () => {
     //Write to influxDB
     const datas = [
         { measurement: 'light', tags: { name: lightSensor.name }, fields: { value: lightValue }},
-        { measurement: 'soil_humidity', tags: { name: humiditySensors[0].name }, fields: { value: humidity_1_value }},
-        { measurement: 'soil_humidity', tags: { name: humiditySensors[1].name }, fields: { value: humidity_2_value }},
-        { measurement: 'soil_humidity', tags: { name: humiditySensors[2].name }, fields: { value: humidity_3_value }},
-        { measurement: 'soil_humidity', tags: { name: humiditySensors[3].name }, fields: { value: humidity_4_value }},
-        { measurement: 'air_temperature', tags: { name: bme280.name }, fields: { value: air_temperature }},
-        { measurement: 'air_humidity', tags: { name: bme280.name }, fields: { value: air_humidity }},
-        { measurement: 'air_pressure', tags: { name: bme280.name }, fields: { value: air_pressure }},
-        { measurement: 'pump', tags: { name: pump1.name }, fields: { value: pump1.isOn ? 1 : 0 }},
-        { measurement: 'pump', tags: { name: pump2.name }, fields: { value: pump2.isOn ? 1 : 0 }},
-        { measurement: 'led', tags: { name: leds.name }, fields: { value: leds.isOn ? 1 : 0 }},
-        { measurement: 'window', tags: { name: greenhouseWindow.name }, fields: { value: greenhouseWindow.isOpen ? 1 : 0 }}
+        // { measurement: 'soil_humidity', tags: { name: humiditySensors[0].name }, fields: { value: humidity_1_value }},
+        // { measurement: 'soil_humidity', tags: { name: humiditySensors[1].name }, fields: { value: humidity_2_value }},
+        // { measurement: 'soil_humidity', tags: { name: humiditySensors[2].name }, fields: { value: humidity_3_value }},
+        // { measurement: 'soil_humidity', tags: { name: humiditySensors[3].name }, fields: { value: humidity_4_value }},
+        // { measurement: 'air_temperature', tags: { name: bme280.name }, fields: { value: air_temperature }},
+        // { measurement: 'air_humidity', tags: { name: bme280.name }, fields: { value: air_humidity }},
+        // { measurement: 'air_pressure', tags: { name: bme280.name }, fields: { value: air_pressure }},
+        // { measurement: 'pump', tags: { name: pump1.name }, fields: { value: pump1.isOn ? 1 : 0 }},
+        // { measurement: 'pump', tags: { name: pump2.name }, fields: { value: pump2.isOn ? 1 : 0 }},
+        // { measurement: 'led', tags: { name: leds.name }, fields: { value: leds.isOn ? 1 : 0 }},
+        // { measurement: 'window', tags: { name: greenhouseWindow.name }, fields: { value: greenhouseWindow.isOpen ? 1 : 0 }}
     ];
     console.log(formatData(datas));
     //Write datas

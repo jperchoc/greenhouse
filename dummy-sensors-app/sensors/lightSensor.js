@@ -15,10 +15,10 @@ export default class LightSensor {
         this.isSensorReady = false;
     }
 
-    _initSensor() {
+    initSensor() {
         return new Promise((res, rej) => {
             this.sensor = new tsl2591({device: '/dev/i2c-1'});
-            this.sensor.init({AGAIN: 0, ATIME: 1}, err => {
+            this.sensor.init({AGAIN: 1, ATIME: 1}, err => {
                 if(err) {
                     rej(err);
                 } else {
@@ -51,7 +51,7 @@ export default class LightSensor {
         } else {
             try {
                 if (!this.isSensorReady) {
-                    await this._initSensor();
+                    await this.initSensor();
                 }
                 return await this._readLuminosity();
             } catch(e) {
