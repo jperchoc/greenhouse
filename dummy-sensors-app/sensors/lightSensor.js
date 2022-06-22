@@ -1,33 +1,30 @@
-import { getRandom, getRandomInt } from "../helpers/helper.js";
 import tsl2591 from 'tsl2591';
 
-export default class LightSensor {
-    constructor(name) {
-        this.name = name;
-        this.min = 50;
-        this.max = 10000;
-        this.dummy = {
-            sens: 1,
-            inc: Math.random()
-        }
-        this.value = getRandom(50, 10000);
+const LUX_DF = 762;
 
-        this.isSensorReady = false;
+export default class LightSensor {
+    constructor(config) {
+        this.name = config.name;
+        this.device = `/dev/i2c-${config.i2cBusNo}`;
+        this.AGAIN = config.AGAIN;
+        this.ATIME = config.ATIME;
+        this.value = 0;
     }
 
-    initSensor() {
+    async init() {
         return new Promise((res, rej) => {
-            this.sensor = new tsl2591({device: '/dev/i2c-1'});
-            this.sensor.init({AGAIN: 1, ATIME: 1}, err => {
+            this.sensor = new tsl2591({device:this.device});
+            this.sensor.init({AGAIN: this.AGAIN, ATIME: this.ATIME}, err => {
                 if(err) {
                     rej(err);
                 } else {
-                    this.isSensorReady = true;
                     res();
                 }
             });
         });
     }
+
+
     _readLuminosity() {
         return new Promise((res, rej) => {
             try {
@@ -35,7 +32,7 @@ export default class LightSensor {
                     if (err) {
                         rej(err);
                     } else {
-                        this.value = (data.vis_ir - (2 * data.ir)) / ((100.0 * 25.0) / 762.0);
+                        this.value = (data.vis_ir - (2 * data.ir)) / ((this._getATimeValue() * this._getAGainValue()) / LUX_DF);
                         res();
                     }
                 });
@@ -45,39 +42,29 @@ export default class LightSensor {
         });
     }
 
-    async getSensorData(params) {
-        if (params.isDummy) {
-            this.updateDummyValue(params.leds, params.isDuringSunTime);
-        } else {
-            try {
-                if (!this.isSensorReady) {
-                    await this.initSensor();
-                }
-                return await this._readLuminosity();
-            } catch(e) {
-                console.log(e);
-            }
+    _getAGainValue() {
+        switch (this.AGAIN) {
+            case 0: return 1;
+            case 1: return 25;
+            case 2: return 428;
+            case 3: return 9876;
+            default: return 1;
         }
     }
 
-    getValue() {
+    _getATimeValue() {
+        return this.ATIME * 100 + 100;
+    }
+
+    async getSensorData() {
+        try {
+            return await this._readLuminosity();
+        } catch(e) {
+            console.log(e);
+        }
+    }
+
+    getLux() {
         return this.value;
-    }
-
-    updateDummyValue(leds, isDuringSunTime) {
-        this.dummy.inc = getRandom(0, 10);
-        const now = new Date();
-        this.dummy.sens = isDuringSunTime ? 1 : -1;
-        this.dummy.sens = (getRandomInt(0, 100) > 40) ? this.dummy.sens : -this.dummy.sens;
-        if (leds.isOn && this.previousLedsState === false) {
-            this.value += 1000;
-        }
-        if (!leds.isOn && this.previousLedsState === true) {
-            this.value -= 1000;
-        }
-        this.previousLedsState = leds.isOn;
-        this.value = this.value + this.dummy.sens * this.dummy.inc;
-        this.value = Math.min(this.max, this.value);
-        this.value = Math.max(this.min, this.value);
     }
 }

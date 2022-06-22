@@ -2,32 +2,115 @@ import GreenhhouseWindow from "./actuators/greenhouse_window.js";
 import LEDs from "./actuators/led.js";
 import Pump from "./actuators/pump.js";
 import { influxWrite, initInflux } from "./helpers/api.js";
-import AmbiantSensor from "./sensors/bme280.js";
-import HumiditySensor from "./sensors/humidity.js";
+import AmbiantSensor from "./sensors/ambiantSensor.js";
+import HumiditySensor from "./sensors/humiditySensor.js";
 import LightSensor from "./sensors/lightSensor.js";
 import fetch from 'node-fetch';
-import config from "./config.js";
+import {config} from "./config.js";
 import { isTimeAfter, isTimeBefore } from "./helpers/date.js";
 
-const INTERVAL = 1000;
+//init db connection
 const influx = initInflux();
 
-const humiditySensors = [
-    new HumiditySensor(0, 'sensor_1'),
-    new HumiditySensor(0, 'sensor_2'),
-    new HumiditySensor(0, 'sensor_3'),
-    new HumiditySensor(0, 'sensor_4')
-];
-const lightSensor = new LightSensor('greenhouse_light');
-const bme280 = new AmbiantSensor('greenhouse_air');
+//create sensors devices
+const lightSensors = config.sensors.lightSensors.map(sensorConf => new LightSensor(sensorConf));
+const ambiantSensors = config.sensors.ambiantSensors.map(sensorConf => new AmbiantSensor(sensorConf));
+const humiditySensors = config.sensors.humiditySensors.map(sensorConf => new HumiditySensor(sensorConf));
+//create actuators devices
+const windowActuators = config.actuators.windows.map(actuatorConf => new GreenhhouseWindow(actuatorConf));
+const lightActuators = config.actuators.lights.map(actuatorConf => new LEDs(actuatorConf));
+const pumpActuators = config.actuators.pumps.map(actuatorConf => new Pump(actuatorConf));
 
-const greenhouseWindow = new GreenhhouseWindow(0, 'window', 80, 40);
-const leds = new LEDs(0, 'leds', 1000, 4000);
-const pump1 = new Pump(0, 'pump_1', 30, 60);
-const pump2 = new Pump(0, 'pump_2', 30, 60);
-
+//set default sunrise and sunset values
 let sunrise = new Date('2022-06-19T05:56:35+00:00');
 let sunset = new Date('2022-06-19T18:06:09+00:00');
+
+//FUNCTIONS
+const initSensors = async () => {
+    for await (const lightSensor of lightSensors) { lightSensor.init()};
+    for await (const ambiantSensor of ambiantSensors) { ambiantSensor.init()};
+    for await (const humiditySensor of humiditySensors) { humiditySensor.init()};
+}
+
+const getSensorsData = async () =>  {
+    for await (const lightSensor of lightSensors) { lightSensor.getSensorData()};
+    for await (const ambiantSensor of ambiantSensors) { ambiantSensor.getSensorData()};
+    for await (const humiditySensor of humiditySensors) { humiditySensor.getSensorData()};
+}
+
+const automateActuators = () => {
+    //loop constants
+    const now = new Date();
+    const isDayTime = isTimeAfter(now, sunrise) && isTimeBefore(now, sunset);
+    //TODO
+
+    // //WINDOW
+    // if (air_humidity > greenhouseWindow.openThreshold) {
+    //     greenhouseWindow.open();
+    // }
+    // if (air_humidity < greenhouseWindow.closeThreshold) {
+    //     greenhouseWindow.close();
+    // }
+    // //LEDS
+    // if (lightValue < leds.onThreshold && !leds.isOn && isDayTime) {
+    //     leds.on();
+    // }
+    // if (lightValue > leds.offThreshold && leds.isOn) {
+    //     leds.off();
+    // }
+    // //PUMPS
+    // if (!pump1.isOn && (humidity_1_value < pump1.onThreshold || humidity_1_value < pump1.onThreshold)) {
+    //     pump1.on();
+    // }
+    // if (pump1.isOn && (humidity_1_value > pump1.offThreshold && humidity_2_value > pump1.offThreshold)) {
+    //     pump1.off();
+    // }
+
+    // if (!pump2.isOn && (humidity_3_value < pump2.onThreshold || humidity_4_value < pump2.onThreshold)) {
+    //     pump2.on();
+    // }
+    // if (pump2.isOn && (humidity_3_value > pump2.offThreshold && humidity_4_value > pump2.offThreshold)) {
+    //     pump2.off();
+    // }
+}
+
+const writeToDB = () => {
+    const datas = [];
+    //sensors
+    lightSensors.forEach(lightSensor => {
+        datas.push({measurement: 'light', tags: { name : lightSensor.name }, fields: { value: lightSensor.getLux()} });
+    });
+    ambiantSensors.forEach(ambiantSensor => {
+        datas.push({measurement: 'air_temperature', tags: { name : ambiantSensor.name }, fields: { value: ambiantSensor.getTemperature()} });
+        datas.push({measurement: 'air_humidity', tags: { name : ambiantSensor.name }, fields: { value: ambiantSensor.getHumidity()} });
+        datas.push({measurement: 'air_pressure', tags: { name : ambiantSensor.name }, fields: { value: ambiantSensor.getPressure()} });
+    });
+    humiditySensors.forEach(humiditySensor => {
+        datas.push({measurement: 'soil_humidity', tags: { name : humiditySensor.name }, fields: { value: humiditySensor.getHumidity()} });
+    });
+    //actuators
+    windowActuators.forEach(windowActuator => {
+        datas.push({measurement: 'window', tags: { name : windowActuator.name }, fields: { value: windowActuator.isOpen ? 1 : 0 } });
+    });
+    lightActuators.forEach(lightActuator => {
+        datas.push({measurement: 'led', tags: { name : lightActuator.name }, fields: { value: lightActuator.isOn ? 1 : 0 } });
+    });
+    pumpActuators.forEach(pumpActuator => {
+        datas.push({measurement: 'pump', tags: { name : pumpActuator.name }, fields: { value: pumpActuator.isOn ? 1 : 0 } });
+    });
+    //log to console
+    console.log(formatData(datas));
+    //Write datas
+    influxWrite(influx, datas);
+}
+
+
+const getSunset = async () => {
+    const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${config.lat}&lng=${config.lat}&date=today&formatted=0`);
+    const json = await response.json();
+    sunrise = new Date(json.results.sunrise);
+    sunset = new Date(json.results.sunset);
+}
 
 const formatData = (datas) => {
     let formatted = '======= DATA ========';
@@ -37,94 +120,28 @@ const formatData = (datas) => {
     return formatted;
 }
 
-const getSunset = async () => {
-    const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${config.lat}&lng=${config.lat}&date=today&formatted=0`);
-    const json = await response.json();
-    sunrise = new Date(json.results.sunrise);
-    sunset = new Date(json.results.sunset);
-}
-
-await lightSensor.initSensor();
-await bme280.initSensor();
+//Script start
+await initSensors();
 await getSunset();
+await getSensorsData();
 
+
+//LOOPS
+
+//refresh sunset and sunrise values every 12 hours
 setInterval(async () => {
     await getSunset();
-}, 1000 * 60 * 60 * 24);
-
-
-//TEST BME280
+}, 1000 * 60 * 60 * 12);
 
 
 setInterval(async () => {
-    //compute dummy sensors data
-    const now = new Date();
-    const isDayTime = isTimeAfter(now, sunrise) && isTimeBefore(now, sunset);
-
-    await humiditySensors[0].getSensorData({isDummy: true, pump: pump1});
-    await humiditySensors[1].getSensorData({isDummy: true, pump: pump1});
-    await humiditySensors[2].getSensorData({isDummy: true, pump: pump2});
-    await humiditySensors[3].getSensorData({isDummy: true, pump: pump2});
-    await bme280.getSensorData({isDummy: false, ghWindow: greenhouseWindow});
-    await lightSensor.getSensorData({isDummy: false, leds: leds, isDayTime: isDayTime});
-
-    //Get sensors values
-    const humidity_1_value = humiditySensors[0].getValue();
-    const humidity_2_value = humiditySensors[1].getValue();
-    const humidity_3_value = humiditySensors[2].getValue();
-    const humidity_4_value = humiditySensors[3].getValue();
-    const lightValue = lightSensor.getValue();
-    const air_temperature = bme280.getTemperatureValue();
-    const air_humidity = bme280.getHumidityValue();
-    const air_pressure = bme280.getPressureValue();
-
+    //update sensors
+    await getSensorsData();
+    
     //automatisation
-    //WINDOW
-    if (air_humidity > greenhouseWindow.openThreshold) {
-        greenhouseWindow.open();
-    }
-    if (air_humidity < greenhouseWindow.closeThreshold) {
-        greenhouseWindow.close();
-    }
-    //LEDS
-    if (lightValue < leds.onThreshold && !leds.isOn && isDayTime) {
-        leds.on();
-    }
-    if (lightValue > leds.offThreshold && leds.isOn) {
-        leds.off();
-    }
-    //PUMPS
-    if (!pump1.isOn && (humidity_1_value < pump1.onThreshold || humidity_1_value < pump1.onThreshold)) {
-        pump1.on();
-    }
-    if (pump1.isOn && (humidity_1_value > pump1.offThreshold && humidity_2_value > pump1.offThreshold)) {
-        pump1.off();
-    }
-
-    if (!pump2.isOn && (humidity_3_value < pump2.onThreshold || humidity_4_value < pump2.onThreshold)) {
-        pump2.on();
-    }
-    if (pump2.isOn && (humidity_3_value > pump2.offThreshold && humidity_4_value > pump2.offThreshold)) {
-        pump2.off();
-    }
+    automateActuators();    
 
     //Write to influxDB
-    const datas = [
-        { measurement: 'light', tags: { name: lightSensor.name }, fields: { value: lightValue }},
-        // { measurement: 'soil_humidity', tags: { name: humiditySensors[0].name }, fields: { value: humidity_1_value }},
-        // { measurement: 'soil_humidity', tags: { name: humiditySensors[1].name }, fields: { value: humidity_2_value }},
-        // { measurement: 'soil_humidity', tags: { name: humiditySensors[2].name }, fields: { value: humidity_3_value }},
-        // { measurement: 'soil_humidity', tags: { name: humiditySensors[3].name }, fields: { value: humidity_4_value }},
-         { measurement: 'air_temperature', tags: { name: bme280.name }, fields: { value: air_temperature }},
-         { measurement: 'air_humidity', tags: { name: bme280.name }, fields: { value: air_humidity }},
-         { measurement: 'air_pressure', tags: { name: bme280.name }, fields: { value: air_pressure }},
-        // { measurement: 'pump', tags: { name: pump1.name }, fields: { value: pump1.isOn ? 1 : 0 }},
-        // { measurement: 'pump', tags: { name: pump2.name }, fields: { value: pump2.isOn ? 1 : 0 }},
-        // { measurement: 'led', tags: { name: leds.name }, fields: { value: leds.isOn ? 1 : 0 }},
-        // { measurement: 'window', tags: { name: greenhouseWindow.name }, fields: { value: greenhouseWindow.isOpen ? 1 : 0 }}
-    ];
-    console.log(formatData(datas));
-    //Write datas
-    influxWrite(influx, datas);
+    writeToDB();
 
-}, INTERVAL);
+}, config.interval);
