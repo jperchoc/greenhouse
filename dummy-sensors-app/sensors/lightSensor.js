@@ -35,7 +35,7 @@ export default class LightSensor {
                     if (err) {
                         rej(err);
                     } else {
-                        this.value = data.vis_ir;
+                        this.value = (data.vis_ir - (2 * data.ir)) / ((100.0 * 25.0) / 762.0);
                         res();
                     }
                 });

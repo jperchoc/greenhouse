@@ -9,7 +9,7 @@
         "start": "node server.js"
     },
     "dependencies": {
-        "bme280": "^2.1.1",
+        "bme280-sensor": "^0.1.7",
         "express": "^4.16.1",
         "influx": "^5.9.3",
         "node-fetch": "^3.2.6",

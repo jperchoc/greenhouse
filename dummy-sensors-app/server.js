@@ -2,7 +2,7 @@ import GreenhhouseWindow from "./actuators/greenhouse_window.js";
 import LEDs from "./actuators/led.js";
 import Pump from "./actuators/pump.js";
 import { influxWrite, initInflux } from "./helpers/api.js";
-import BME280 from "./sensors/bme280.js";
+import AmbiantSensor from "./sensors/bme280.js";
 import HumiditySensor from "./sensors/humidity.js";
 import LightSensor from "./sensors/lightSensor.js";
 import fetch from 'node-fetch';
@@ -19,7 +19,7 @@ const humiditySensors = [
     new HumiditySensor(0, 'sensor_4')
 ];
 const lightSensor = new LightSensor('greenhouse_light');
-const bme280 = new BME280('greenhouse_air');
+const bme280 = new AmbiantSensor('greenhouse_air');
 
 const greenhouseWindow = new GreenhhouseWindow(0, 'window', 80, 40);
 const leds = new LEDs(0, 'leds', 1000, 4000);
@@ -45,11 +45,16 @@ const getSunset = async () => {
 }
 
 await lightSensor.initSensor();
+await bme280.initSensor();
 await getSunset();
 
 setInterval(async () => {
     await getSunset();
 }, 1000 * 60 * 60 * 24);
+
+
+//TEST BME280
+
 
 setInterval(async () => {
     //compute dummy sensors data
@@ -60,7 +65,7 @@ setInterval(async () => {
     await humiditySensors[1].getSensorData({isDummy: true, pump: pump1});
     await humiditySensors[2].getSensorData({isDummy: true, pump: pump2});
     await humiditySensors[3].getSensorData({isDummy: true, pump: pump2});
-    await bme280.getSensorData({isDummy: true, ghWindow: greenhouseWindow});
+    await bme280.getSensorData({isDummy: false, ghWindow: greenhouseWindow});
     await lightSensor.getSensorData({isDummy: false, leds: leds, isDayTime: isDayTime});
 
     //Get sensors values
@@ -110,9 +115,9 @@ setInterval(async () => {
         // { measurement: 'soil_humidity', tags: { name: humiditySensors[1].name }, fields: { value: humidity_2_value }},
         // { measurement: 'soil_humidity', tags: { name: humiditySensors[2].name }, fields: { value: humidity_3_value }},
         // { measurement: 'soil_humidity', tags: { name: humiditySensors[3].name }, fields: { value: humidity_4_value }},
-        // { measurement: 'air_temperature', tags: { name: bme280.name }, fields: { value: air_temperature }},
-        // { measurement: 'air_humidity', tags: { name: bme280.name }, fields: { value: air_humidity }},
-        // { measurement: 'air_pressure', tags: { name: bme280.name }, fields: { value: air_pressure }},
+         { measurement: 'air_temperature', tags: { name: bme280.name }, fields: { value: air_temperature }},
+         { measurement: 'air_humidity', tags: { name: bme280.name }, fields: { value: air_humidity }},
+         { measurement: 'air_pressure', tags: { name: bme280.name }, fields: { value: air_pressure }},
         // { measurement: 'pump', tags: { name: pump1.name }, fields: { value: pump1.isOn ? 1 : 0 }},
         // { measurement: 'pump', tags: { name: pump2.name }, fields: { value: pump2.isOn ? 1 : 0 }},
         // { measurement: 'led', tags: { name: leds.name }, fields: { value: leds.isOn ? 1 : 0 }},

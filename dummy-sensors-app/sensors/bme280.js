@@ -1,8 +1,8 @@
 import { getRandom, getRandomInt } from "../helpers/helper.js";
-import bme280 from 'bme280';
-
-export default class BME280 {
+import BME280 from 'bme280-sensor';
+export default class AmbiantSensor {
     constructor(name) {
+        this.isSensorReady = false;
         this.name = name;
         this.temperature = getRandom(12, 25);
         this.humidity = getRandom(0, 100);
@@ -27,6 +27,17 @@ export default class BME280 {
         };
     }
 
+    async initSensor() {
+        const options = {
+            i2cBusNo   : 1, // defaults to 1
+            i2cAddress : 0x76 // defaults to 0x77
+          };
+          
+          this.sensor = new BME280(options);
+          await this.sensor.init();
+          this.isSensorReady = true;
+    }
+
     async getSensorData(params) {
         if (params.isDummy) {
             this.updateDummyHumidityValue(params.ghWindow);
@@ -34,11 +45,10 @@ export default class BME280 {
             this.updateDummyTemperatureValue();
         } else {
             try {
-                const sensor = await bme280.open();
-                const sensorData = await sensor.read();
-                this.temperature = sensorData.temperature;
-                this.pressure = sensorData.pressure;
+                const sensorData = await this.sensor.readSensorData();
+                this.temperature = sensorData.temperature_C;
                 this.humidity = sensorData.humidity;
+                this.pressure = sensorData.pressure_hPa;
             } catch (error) {
                 console.log(error);
             }
