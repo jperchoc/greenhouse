@@ -1,7 +1,7 @@
 {
-    "name": "dummy_sensor_push",
+    "name": "greenhouse-server",
     "version": "1.0.0",
-    "description": "Push dummy sensors datas to influxDB",
+    "description": "Get greenhouse sensors datas and send them to influxDB",
     "author": "Jonathan Perchoc",
     "main": "server.js",
     "type": "module",
@@ -10,11 +10,10 @@
     },
     "dependencies": {
         "bme280-sensor": "^0.1.7",
-        "express": "^4.16.1",
+        "i2c": "^0.2.5",
         "influx": "^5.9.3",
-        "node-fetch": "^3.2.6",
-        "onoff": "^6.0.3",
-        "tsl2591": "^0.2.0"
+        "mcp-spi-adc": "^3.2.0",
+        "node-fetch": "^3.2.6"
     },
     "devDependencies": {
         "coffee-script": "^1.12.7"

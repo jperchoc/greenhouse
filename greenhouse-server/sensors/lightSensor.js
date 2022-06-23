@@ -1,11 +1,12 @@
-import tsl2591 from 'tsl2591';
+import tsl2591 from "../libs/tsl2591.js";
 
 const LUX_DF = 762;
 
 export default class LightSensor {
     constructor(config) {
         this.name = config.name;
-        this.device = `/dev/i2c-${config.i2cBusNo}`;
+        this.i2cBusNo = `/dev/i2c-${config.i2cBusNo}`;
+        this.i2cAddress = config.i2cAddress;
         this.AGAIN = config.AGAIN;
         this.ATIME = config.ATIME;
         this.value = 0;
@@ -13,7 +14,7 @@ export default class LightSensor {
 
     async init() {
         return new Promise((res, rej) => {
-            this.sensor = new tsl2591({device:this.device});
+            this.sensor = new tsl2591({device:this.i2cBusNo, address: this.i2cAddress });
             this.sensor.init({AGAIN: this.AGAIN, ATIME: this.ATIME}, err => {
                 if(err) {
                     rej(err);
@@ -32,7 +33,7 @@ export default class LightSensor {
                     if (err) {
                         rej(err);
                     } else {
-                        this.value = (data.vis_ir - (2 * data.ir)) / ((this._getATimeValue() * this._getAGainValue()) / LUX_DF);
+                        this.value = Math.max(0, (data.vis_ir - (2 * data.ir)) / ((this._getATimeValue() * this._getAGainValue()) / LUX_DF));
                         res();
                     }
                 });

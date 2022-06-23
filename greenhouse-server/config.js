@@ -11,7 +11,7 @@ export const config = {
             {
                 name: 'greenhouse_light',
                 i2cBusNo: 1,
-                //i2cAddress: 0x29, //TODO: find a way to change this
+                i2cAddress: 0x29,
                 AGAIN: 1,
                 ATIME: 1,
             }
@@ -24,26 +24,27 @@ export const config = {
             }
         ],
         humiditySensors: [
-            // {
-            //     name: 'humidity_sensor_1',
-            //     channel: 0
-            // },
-            // {
-            //     name: 'humidity_sensor_2',
-            //     channel: 1
-            // },
-            // {
-            //     name: 'humidity_sensor_3',
-            //     channel: 2
-            // },
-            // {
-            //     name: 'humidity_sensor_4',
-            //     channel: 3
-            // },
-            // {
-            //     name: 'humidity_sensor_5',
-            //     channel: 4
-            // }
+            {
+                name: 'humidity_sensor_1',
+                channel: 0,
+                speedHz: 1350000,
+                dryValue: 1023,
+                wetValue: 730,
+            },
+            {
+                name: 'humidity_sensor_2',
+                channel: 1,
+                speedHz: 1350000,
+                dryValue: 1023,
+                wetValue: 730,
+            },
+            {
+                name: 'humidity_sensor_3',
+                channel: 2,
+                speedHz: 1350000,
+                dryValue: 1023,
+                wetValue: 720,
+            },
         ]
     },
     actuators: {

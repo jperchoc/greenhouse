@@ -105,3 +105,7 @@ dist
 
 #vsCode
 .vscode
+
+#python cache
+*.pyc
+
