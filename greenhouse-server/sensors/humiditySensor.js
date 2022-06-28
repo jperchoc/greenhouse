@@ -34,7 +34,8 @@ export default class HumiditySensor {
                     if (err) {
                         rej(err);
                     } else {
-                        this.value = 100 - mapBetween(data.rawValue, 0, 100, this.wetValue, this.dryValue);
+                        const perc = 100 - mapBetween(data.rawValue, 0, 100, this.wetValue, this.dryValue);
+                        this.value = Math.max(-10, Math.min(110, perc));
                         res();
                     }
                 });
