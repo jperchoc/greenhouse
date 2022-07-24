@@ -106,10 +106,14 @@ const writeToDB = () => {
 
 
 const getSunset = async () => {
-    const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${config.lat}&lng=${config.lat}&date=today&formatted=0`);
-    const json = await response.json();
-    sunrise = new Date(json.results.sunrise);
-    sunset = new Date(json.results.sunset);
+    try {
+        const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${config.lat}&lng=${config.lat}&date=today&formatted=0`);
+        const json = await response.json();
+        sunrise = new Date(json.results.sunrise);
+        sunset = new Date(json.results.sunset);
+    } catch(ex) {
+        console.log("Err: Failed fetching sunset and sunrise: ", ex);
+    }
 }
 
 const formatData = (datas) => {
@@ -142,6 +146,10 @@ setInterval(async () => {
     automateActuators();    
 
     //Write to influxDB
-    writeToDB();
+    try {
+        writeToDB();
+    } catch (ex) {
+        console.log('Err: Writing to influx failed: ', ex);
+    }
 
 }, config.interval);
