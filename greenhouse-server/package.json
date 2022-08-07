@@ -3,13 +3,15 @@
     "version": "1.0.0",
     "description": "Get greenhouse sensors datas and send them to influxDB",
     "author": "Jonathan Perchoc",
-    "main": "server.js",
+    "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node server.js"
+        "start": "node index.js"
     },
     "dependencies": {
         "bme280-sensor": "^0.1.7",
+        "cors": "^2.8.5",
+        "express": "^4.18.1",
         "i2c": "^0.2.5",
         "influx": "^5.9.3",
         "mcp-spi-adc": "^3.2.0",

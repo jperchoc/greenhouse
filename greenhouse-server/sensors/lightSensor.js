@@ -1,7 +1,4 @@
 import TSL2591 from "../libs/tsl2591.js";
-import tsl2591 from "../libs/tsl2591.js";
-
-const LUX_DF = 762;
 
 export default class LightSensor {
     constructor(config) {

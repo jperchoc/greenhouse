@@ -1,11 +1,5 @@
 export const config = {
-    useInfluxDB: false,
-    host: 'youInfluxDBHostHere',
-    port: '8086',
-    db: 'greenhouse_real_data',
-    lat: '0.00',
-    long: '0.00',
-    interval: 1000,
+
     sensors: {
         lightSensors: [
             {
@@ -28,22 +22,29 @@ export const config = {
                 name: 'humidity_sensor_1',
                 channel: 0,
                 speedHz: 1350000,
-                dryValue: 1023,
-                wetValue: 730,
+                dryValue: 839,
+                wetValue: 410,
             },
             {
                 name: 'humidity_sensor_2',
                 channel: 1,
                 speedHz: 1350000,
-                dryValue: 1023,
-                wetValue: 730,
+                dryValue: 832,
+                wetValue: 406,
             },
             {
                 name: 'humidity_sensor_3',
                 channel: 2,
                 speedHz: 1350000,
-                dryValue: 1023,
-                wetValue: 720,
+                dryValue: 814,
+                wetValue: 400,
+            },
+            {
+                name: 'humidity_sensor_4',
+                channel: 3,
+                speedHz: 1350000,
+                dryValue: 826,
+                wetValue: 404,
             },
         ]
     },

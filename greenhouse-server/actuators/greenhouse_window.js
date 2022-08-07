@@ -1,4 +1,4 @@
-export default class GreenhhouseWindow {
+export default class GreenhouseWindow {
     constructor(gpio, name, openThreshold, closeThreshold) {
         this.gpio = gpio;
         this.name = name;
