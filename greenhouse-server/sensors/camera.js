@@ -34,8 +34,6 @@ export default class Camera {
             "--height",
             480,
             "--nopreview",
-            "--awb",
-            "greyworld",
             "--ISO",
             100000,
             "--exposure",
